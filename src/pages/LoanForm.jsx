@@ -8,7 +8,7 @@ const LoanForm = ({ addLoanApplication }) => {
     purpose: "",
     loanType: "",
   });
-  const [error, setError] = useState(""); // State for error message
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,7 +18,6 @@ const LoanForm = ({ addLoanApplication }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Create a loan application object
     const newLoanApplication = {
       ...loanData,
       applicationDate: new Date().toISOString(),
