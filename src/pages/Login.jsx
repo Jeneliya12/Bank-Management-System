@@ -1,24 +1,36 @@
-// Login.js
 import React, { useState } from "react";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext"; // Assuming you're using an Auth context
 
 const Login = () => {
+  const { login } = useAuth(); // Using AuthContext to manage the authenticated user
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    const adminEmail = "admin@example.com";
-    const adminPassword = "admin123";
-    const userEmail = "user@example.com";
-    const userPassword = "user123";
+    try {
+      const response = await axios.post("http://localhost:8080/api/login", {
+        email,
+        password,
+      });
 
-    if (email === adminEmail && password === adminPassword) {
-      window.location.href = "/admin-dashboard";
-    } else if (email === userEmail && password === userPassword) {
-      window.location.href = "/user-dashboard";
-    } else {
+      // Assuming the response contains user data with a role
+      const userData = response.data;
+
+      if (userData) {
+        login(userData); // Set the user data in the context
+
+        // Redirect based on the user's role
+        if (userData.role === "ADMIN") {
+          window.location.href = "/admin-dashboard";
+        } else {
+          window.location.href = "/user-dashboard";
+        }
+      }
+    } catch (error) {
       setErrorMessage("Invalid email or password.");
     }
   };
@@ -68,7 +80,7 @@ const Login = () => {
         </form>
         <p className="text-center text-gray-400 mt-4">
           Don't have an account?{" "}
-          <a href="#" className="text-blue-500">
+          <a href="/register" className="text-blue-500">
             Register here
           </a>
         </p>

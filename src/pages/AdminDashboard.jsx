@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Add this import
 import UserProfile from "../components/UserProfile";
 import UserManagement from "../components/UserManagement";
 import LoanApplications from "../components/LoanApplications";
@@ -7,6 +8,7 @@ import LoanVerification from "../components/LoanVerification";
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("user-management");
+  const navigate = useNavigate();
 
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -23,7 +25,8 @@ function AdminDashboard() {
   };
 
   const handleLogout = () => {
-    console.log("User logged out");
+    localStorage.removeItem("admin"); // Ensure this key matches what you used to set
+    navigate("/login"); // Ensure the route exists
   };
 
   return (

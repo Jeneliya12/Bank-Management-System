@@ -23,3 +23,17 @@ const App = () => {
 };
 
 export default App;
+
+// import React from "react";
+// import TestConnection from "./components/TestConnection";
+
+// function App() {
+//   return (
+//     <div>
+//       <h1>Test Backend Connection</h1>
+//       <TestConnection />
+//     </div>
+//   );
+// }
+
+// export default App;

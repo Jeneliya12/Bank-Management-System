@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 
 const LoanForm = ({ addLoanApplication }) => {
   const [loanData, setLoanData] = useState({
@@ -7,24 +8,41 @@ const LoanForm = ({ addLoanApplication }) => {
     purpose: "",
     loanType: "",
   });
+  const [error, setError] = useState(""); // State for error message
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setLoanData({ ...loanData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    addLoanApplication({
+
+    // Create a loan application object
+    const newLoanApplication = {
       ...loanData,
-      id: new Date().getTime(),
-      applicationDate: new Date().toISOString().split("T")[0],
-    });
-    setLoanData({ amount: "", term: "", purpose: "", loanType: "" });
+      applicationDate: new Date().toISOString(),
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/api/loans",
+        newLoanApplication
+      );
+
+      addLoanApplication(response.data);
+      setLoanData({ amount: "", term: "", purpose: "", loanType: "" });
+      setError("");
+    } catch (error) {
+      console.error("Error submitting the loan application:", error);
+      setError("Failed to submit loan application. Please try again.");
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="bg-gray-700 p-4 rounded mb-4">
+      {error && <p className="text-red-500">{error}</p>}{" "}
+      {/* Display error message */}
       <div className="mb-4">
         <label className="block text-gray-300" htmlFor="amount">
           Loan Amount
@@ -37,6 +55,7 @@ const LoanForm = ({ addLoanApplication }) => {
           onChange={handleChange}
           required
           className="mt-1 p-2 w-full bg-gray-600 rounded"
+          min="0"
         />
       </div>
       <div className="mb-4">
@@ -51,6 +70,7 @@ const LoanForm = ({ addLoanApplication }) => {
           onChange={handleChange}
           required
           className="mt-1 p-2 w-full bg-gray-600 rounded"
+          min="1"
         />
       </div>
       <div className="mb-4">

@@ -1,5 +1,3 @@
-import React from "react";
-
 const LoanTable = ({ loanApplications }) => {
   return (
     <div className="loan-applications bg-white p-4 rounded-lg">

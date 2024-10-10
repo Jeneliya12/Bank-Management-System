@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 function LoanStatus() {
   const [loanStatus, setLoanStatus] = useState([]);
@@ -6,17 +7,18 @@ function LoanStatus() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchLoanStatus = () => {
-      const mockData = [
-        { loanId: 1, status: "Approved" },
-        { loanId: 2, status: "Pending" },
-        { loanId: 3, status: "Rejected" },
-      ];
-
-      setTimeout(() => {
-        setLoanStatus(mockData);
+    const fetchLoanStatus = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(
+          "http://localhost:8080/api/loans/status"
+        );
+        setLoanStatus(response.data);
+      } catch (err) {
+        setError("Failed to fetch loan statuses");
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     };
 
     fetchLoanStatus();
@@ -30,7 +32,7 @@ function LoanStatus() {
 
       <table className="w-full">
         <thead>
-          <tr className="bg-gray-700">
+          <tr className="bg-gray-700 text-white">
             <th className="p-2">Loan ID</th>
             <th className="p-2">Status</th>
           </tr>
