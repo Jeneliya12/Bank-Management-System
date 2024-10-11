@@ -36,6 +36,12 @@ public class Loan {
     @Column(nullable = false)
     private String status = "PENDING";
 
+    @Column(nullable = false)
+    private BigDecimal annualInterestRate; // New field for the annual interest rate
+
+    // Optional: Store monthly payment in the database if needed
+    private BigDecimal monthlyPayment; // Optional, only if you want to persist this value
+
     // Many loans can belong to one user
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

@@ -15,6 +15,8 @@ public class LoanResponseDTO {
     private Date applicationDate;
     private String status;
     private UserDTO user;
+    private BigDecimal rate; // Keep this if you need it
+    private BigDecimal monthlyPayment; // New field for monthly payment
 
     @Data
     public static class UserDTO {
