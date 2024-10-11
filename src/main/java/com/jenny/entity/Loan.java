@@ -5,9 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
-@Data // This will generate getters, setters, toString, equals, and hashCode methods
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -16,22 +17,27 @@ public class Loan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false) // Ensure amount is not null
-    private String amount;
+    @Column(nullable = false)
+    private BigDecimal amount; // Changed to BigDecimal for monetary value
 
-    @Column(nullable = false) // Ensure term is not null
-    private String term;
+    @Column(nullable = false)
+    private Integer term; // Changed to Integer for term in months
 
-    @Column(nullable = false) // Ensure purpose is not null
+    @Column(nullable = false)
     private String purpose;
 
-    @Column(nullable = false) // Ensure loan type is not null
+    @Column(nullable = false)
     private String loanType;
 
-    @Column(nullable = false) // Ensure application date is not null
-    @Temporal(TemporalType.TIMESTAMP) // Specify that it's a timestamp
-    private Date applicationDate;
+    @Column(nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date applicationDate; // Will receive from the customer
 
-    @Column(nullable = false) // Ensure status is not null
-    private String status = "PENDING"; // Default status is "PENDING"
+    @Column(nullable = false)
+    private String status = "PENDING";
+
+    // Many loans can belong to one user
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

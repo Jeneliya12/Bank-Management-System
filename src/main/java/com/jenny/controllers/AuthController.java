@@ -26,35 +26,29 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // Registration endpoint
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody User user) {
-        // Check for null or invalid input
         if (user.getEmail() == null || user.getPassword() == null) {
             return createErrorResponse(HttpStatus.BAD_REQUEST, "Email and password are required.");
         }
 
-        // Check if the user already exists
         if (userRepository.existsByEmail(user.getEmail())) {
             return createErrorResponse(HttpStatus.CONFLICT, "User already exists.");
         }
 
-        // Hash the password before saving
         String hashedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(hashedPassword);
 
-        // Set default role if not provided
         if (user.getRole() == null || user.getRole().isEmpty()) {
-            user.setRole("USER"); // Default role
+            user.setRole("USER");
         }
 
         User savedUser = userRepository.save(user);
 
-        // Create a response without sensitive information
         Map<String, Object> response = new HashMap<>();
         response.put("id", savedUser.getId());
         response.put("email", savedUser.getEmail());
-        response.put("role", savedUser.getRole()); // Include role in response
+        response.put("role", savedUser.getRole());
         response.put("message", "User registered successfully.");
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -64,34 +58,28 @@ public class AuthController {
     // Login endpoint
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
-        // Find the user by email
         Optional<User> existingUserOpt = userRepository.findByEmail(user.getEmail());
 
-        // Check if user exists and password matches
         if (existingUserOpt.isEmpty() || !passwordEncoder.matches(user.getPassword(), existingUserOpt.get().getPassword())) {
             return createErrorResponse(HttpStatus.UNAUTHORIZED, "Invalid email or password.");
         }
 
         User existingUser = existingUserOpt.get();
 
-        // Create response map with user role
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Login Successful");
-        response.put("role", existingUser.getRole()); // Include user role in response
+        response.put("role", existingUser.getRole());
 
         return ResponseEntity.ok(response);
     }
 
-    // Handle exceptions globally
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Map<String, Object>> handleException(Exception e) {
-        // Log the exception details for debugging
         logger.error("An error occurred: ", e);
         return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred: " + e.getMessage());
     }
 
-    // Utility method to create structured error response
     private ResponseEntity<Map<String, Object>> createErrorResponse(HttpStatus status, String message) {
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("error", message);

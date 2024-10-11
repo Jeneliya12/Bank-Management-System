@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class GreetingController {
 
-    @CrossOrigin(origins = "http://localhost:5173") // Allow only your frontend origin
+    @CrossOrigin(origins = "http://localhost:5173")
     @GetMapping("/greeting")
     public String greeting() {
         return "Hello, World! this is jeneliya gurung";
