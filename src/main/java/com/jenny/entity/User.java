@@ -21,7 +21,6 @@ public class User {
     private String password;
     private String role;
 
-    // One user can have many loans
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Loan> loans;
 

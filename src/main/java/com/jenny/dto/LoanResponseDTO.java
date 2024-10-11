@@ -8,15 +8,15 @@ import java.util.Date;
 @Data
 public class LoanResponseDTO {
     private Long id;
-    private BigDecimal amount; // Changed to BigDecimal
-    private Integer term; // Changed to Integer
+    private BigDecimal amount;
+    private Integer term;
     private String purpose;
     private String loanType;
     private Date applicationDate;
     private String status;
     private UserDTO user;
-    private BigDecimal rate; // Keep this if you need it
-    private BigDecimal monthlyPayment; // New field for monthly payment
+    private BigDecimal rate;
+    private BigDecimal monthlyPayment;
 
     @Data
     public static class UserDTO {

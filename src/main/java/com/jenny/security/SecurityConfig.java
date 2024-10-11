@@ -30,19 +30,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(SecurityConfig::disableCsrf) // Disable CSRF protection using method reference
+                .csrf(SecurityConfig::disableCsrf)
                 .exceptionHandling(customizer -> customizer
                         .authenticationEntryPoint(jwtAuthEntryPoint)
                 )
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/auth/**").permitAll() // Permit all requests under /api/auth/**
-                        .requestMatchers("/api/loans/all", "/api/loans/{id}").permitAll() // Allow public access to these loan APIs
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/loans/all", "/api/loans/{id}").permitAll()
                         .requestMatchers("/api/loans/**").authenticated()
-                        .anyRequest().authenticated() // Authenticate all other requests
+                        .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults()) // Configure HTTP Basic authentication
+                .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless session management
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
@@ -66,7 +66,7 @@ public class SecurityConfig {
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder()); // Use the defined PasswordEncoder
+        provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
 

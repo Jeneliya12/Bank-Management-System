@@ -13,7 +13,6 @@ public class LoanPaymentController {
     @Autowired
     private LoanPaymentService loanPaymentService;
 
-    // Endpoint to make a payment
     @PostMapping("/{loanId}")
     public ResponseEntity<String> makePayment(
             @PathVariable Long loanId,

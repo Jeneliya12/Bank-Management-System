@@ -30,7 +30,7 @@ public class LoanPaymentService {
         // Update the loan balance
         BigDecimal newBalance = loan.getAmount().subtract(paymentRequest.getAmount());
         loan.setAmount(newBalance);
-        loanRepository.save(loan); // Save the updated loan
+        loanRepository.save(loan);
 
         // Create a new payment record
         Payment payment = new Payment();

@@ -8,6 +8,5 @@ import java.util.List;
 
 @Repository
 public interface LoanRepository extends JpaRepository<Loan, Long> {
-    // Custom method to find loans by user ID
     List<Loan> findByUserId(Long userId);
 }
