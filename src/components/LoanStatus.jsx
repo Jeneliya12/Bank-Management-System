@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 
 function LoanStatus() {
   const [loanStatus, setLoanStatus] = useState([]);
@@ -10,10 +9,16 @@ function LoanStatus() {
     const fetchLoanStatus = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(
-          "http://localhost:8080/api/loans/status"
-        );
-        setLoanStatus(response.data);
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        const mockData = [
+          { loanId: "1", status: "Approved" },
+          { loanId: "2", status: "Pending" },
+          { loanId: "3", status: "Rejected" },
+        ];
+
+        setLoanStatus(mockData);
       } catch (err) {
         setError("Failed to fetch loan statuses");
       } finally {

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import apiClient from "../services/ApiClient";
 
 const LoanForm = ({ addLoanApplication }) => {
   const [loanData, setLoanData] = useState({
@@ -7,6 +7,7 @@ const LoanForm = ({ addLoanApplication }) => {
     term: "",
     purpose: "",
     loanType: "",
+    annualInterestRate: "",
   });
   const [error, setError] = useState("");
 
@@ -20,28 +21,38 @@ const LoanForm = ({ addLoanApplication }) => {
 
     const newLoanApplication = {
       ...loanData,
+      amount: parseFloat(loanData.amount),
+      term: parseInt(loanData.term),
+      annualInterestRate: parseFloat(loanData.annualInterestRate),
       applicationDate: new Date().toISOString(),
+      status: "PENDING",
+      monthlyPayment: null,
+      user: {
+        id: 1,
+      },
     };
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/loans",
-        newLoanApplication
-      );
+      const response = await apiClient.post("/loans", newLoanApplication);
+      const data = response.data;
+      addLoanApplication(data);
 
-      addLoanApplication(response.data);
-      setLoanData({ amount: "", term: "", purpose: "", loanType: "" });
+      setLoanData({
+        amount: "",
+        term: "",
+        purpose: "",
+        loanType: "",
+        annualInterestRate: "",
+      });
       setError("");
     } catch (error) {
-      console.error("Error submitting the loan application:", error);
-      setError("Failed to submit loan application. Please try again.");
+      setError(error.response ? error.response.data.message : error.message);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="bg-gray-700 p-4 rounded mb-4">
-      {error && <p className="text-red-500">{error}</p>}{" "}
-      {/* Display error message */}
+      {error && <p className="text-red-500">{error}</p>}
       <div className="mb-4">
         <label className="block text-gray-300" htmlFor="amount">
           Loan Amount
@@ -70,6 +81,21 @@ const LoanForm = ({ addLoanApplication }) => {
           required
           className="mt-1 p-2 w-full bg-gray-600 rounded"
           min="1"
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block text-gray-300" htmlFor="annualInterestRate">
+          Annual Interest Rate (%)
+        </label>
+        <input
+          type="number"
+          step="0.01"
+          id="annualInterestRate"
+          name="annualInterestRate"
+          value={loanData.annualInterestRate}
+          onChange={handleChange}
+          required
+          className="mt-1 p-2 w-full bg-gray-600 rounded"
         />
       </div>
       <div className="mb-4">

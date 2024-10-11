@@ -17,8 +17,11 @@ const LoanTable = ({ loanApplications }) => {
             </tr>
           </thead>
           <tbody>
-            {loanApplications.map((application) => (
-              <tr key={application.id} className="border-b border-gray-700">
+            {loanApplications.map((application, index) => (
+              <tr
+                key={application.id || index}
+                className="border-b border-gray-700"
+              >
                 <td className="p-2">{application.id}</td>
                 <td className="p-2">{application.loanType}</td>
                 <td className="p-2">${application.amount}</td>

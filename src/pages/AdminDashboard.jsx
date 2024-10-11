@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Add this import
+import { useNavigate } from "react-router-dom";
 import UserProfile from "../components/UserProfile";
 import UserManagement from "../components/UserManagement";
 import LoanApplications from "../components/LoanApplications";
@@ -25,15 +25,13 @@ function AdminDashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("admin"); // Ensure this key matches what you used to set
-    navigate("/login"); // Ensure the route exists
+    localStorage.removeItem("admin");
+    navigate("/login");
   };
 
   return (
     <div className="h-screen flex">
-      {/* Left Navigation */}
       <div className="w-1/6 bg-gray-900 text-white p-4 flex flex-col justify-between text-center">
-        {/* Top Section with Circular Image */}
         <div>
           <UserProfile />
           <ul>
@@ -51,7 +49,7 @@ function AdminDashboard() {
             </li>
             <li
               className="mb-6 cursor-pointer hover:text-blue-300"
-              onClick={() => setActiveTab("loan-verification")} // New tab for loan verification
+              onClick={() => setActiveTab("loan-verification")}
             >
               Loan Verification
             </li>
@@ -92,10 +90,8 @@ function AdminDashboard() {
         </button>
       </div>
 
-      {/* Main Body */}
       <div className="w-3/5 bg-gray-800 p-6">{renderActiveTab()}</div>
 
-      {/* Right Section for Quick Stats or Summary */}
       <div className="w-1/4 bg-gray-900 p-4">
         <h2 className="text-xl font-bold mb-4 text-white">Quick Stats</h2>
         <div className="bg-gray-700 p-4 rounded-lg mb-4">

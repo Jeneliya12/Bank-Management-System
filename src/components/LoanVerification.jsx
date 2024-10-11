@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 
 function LoanVerification() {
   const [pendingLoans, setPendingLoans] = useState([]);
@@ -7,47 +6,55 @@ function LoanVerification() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const backendUrl = process.env.REACT_APP_BACKEND_URL; // Using the environment variable
-    console.log("Backend URL:", backendUrl);
+    const fetchPendingLoans = async () => {
+      try {
+        setLoading(true);
 
-    axios
-      .get(`${backendUrl}/api/loans/pending`)
-      .then((response) => {
-        console.log("API Response: ", response.data);
-        setPendingLoans(response.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching pending loans:", error);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        const mockData = [
+          {
+            id: "1",
+            borrowerName: "John Doe",
+            amount: 5000,
+            applicationDate: "2024-10-01T00:00:00Z",
+          },
+          {
+            id: "2",
+            borrowerName: "Jane Smith",
+            amount: 3000,
+            applicationDate: "2024-10-02T00:00:00Z",
+          },
+          {
+            id: "3",
+            borrowerName: "Alice Johnson",
+            amount: 7000,
+            applicationDate: "2024-10-03T00:00:00Z",
+          },
+        ];
+
+        setPendingLoans(mockData);
+      } catch (err) {
+        console.error("Error fetching pending loans:", err);
         setError("Error fetching pending loans.");
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchPendingLoans();
   }, []);
 
-  const handleApprove = async (loanId) => {
-    try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL; // Using the environment variable
-      await axios.patch(`${backendUrl}/api/loans/${loanId}/approve`);
-      setPendingLoans((prevLoans) =>
-        prevLoans.filter((loan) => loan.id !== loanId)
-      ); // Remove approved loan from pending loans
-    } catch (error) {
-      console.error("Error approving loan:", error);
-      setError("Error approving loan.");
-    }
+  const handleApprove = (loanId) => {
+    setPendingLoans((prevLoans) =>
+      prevLoans.filter((loan) => loan.id !== loanId)
+    );
   };
 
-  const handleReject = async (loanId) => {
-    try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL; // Using the environment variable
-      await axios.patch(`${backendUrl}/api/loans/${loanId}/reject`);
-      setPendingLoans((prevLoans) =>
-        prevLoans.filter((loan) => loan.id !== loanId)
-      ); // Remove rejected loan from pending loans
-    } catch (error) {
-      console.error("Error rejecting loan:", error);
-      setError("Error rejecting loan.");
-    }
+  const handleReject = (loanId) => {
+    setPendingLoans((prevLoans) =>
+      prevLoans.filter((loan) => loan.id !== loanId)
+    );
   };
 
   return (

@@ -2,43 +2,44 @@ import React, { useState } from "react";
 import axios from "axios";
 
 const Register = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("USER"); // State for role selection
-  const [errorMessage, setErrorMessage] = useState(""); // To handle error messages
-  const [successMessage, setSuccessMessage] = useState(""); // To handle success messages
-  const [isLoading, setIsLoading] = useState(false); // To manage loading state
+  const [role, setRole] = useState("USER");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage(""); // Reset error message
-    setSuccessMessage(""); // Reset success message
-    setIsLoading(true); // Set loading state
+    setErrorMessage("");
+    setSuccessMessage("");
+    setIsLoading(true);
 
     try {
-      // Send request to the backend API for registration
-      const response = await axios.post("http://localhost:8080/api/register", {
-        email,
-        password,
-        role, // Include the selected role
-      });
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/register",
+        {
+          username,
+          password,
+          role,
+        }
+      );
       console.log("User registered:", response.data);
-      setSuccessMessage("Registration successful!"); // Set success message
-      setEmail("");
+      setSuccessMessage("Registration successful!");
+      setUsername("");
       setPassword("");
-      setRole("USER"); // Reset role selection
+      setRole("USER");
     } catch (error) {
-      // Handle error response from the server
       if (error.response) {
         setErrorMessage(
           error.response.data.message || "Error registering user"
-        ); // Display the error message from server
+        );
       } else {
-        setErrorMessage("Network error. Please try again."); // Handle network error
+        setErrorMessage("Network error. Please try again.");
       }
       console.error("Error registering user:", error);
     } finally {
-      setIsLoading(false); // Reset loading state
+      setIsLoading(false);
     }
   };
 
@@ -49,26 +50,24 @@ const Register = () => {
           Register
         </h1>
 
-        {/* Display error message */}
         {errorMessage && (
           <p className="text-red-500 text-center mb-4">{errorMessage}</p>
         )}
 
-        {/* Display success message */}
         {successMessage && (
           <p className="text-green-500 text-center mb-4">{successMessage}</p>
         )}
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-300 mb-1" htmlFor="email">
-              Email
+            <label className="block text-gray-300 mb-1" htmlFor="username">
+              Username
             </label>
             <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
               className="mt-1 p-2 w-full bg-gray-700 text-white rounded focus:outline-none focus:ring focus:ring-blue-500"
             />
@@ -103,7 +102,7 @@ const Register = () => {
 
           <button
             type="submit"
-            disabled={isLoading} // Disable button while loading
+            disabled={isLoading}
             className={`w-full bg-blue-600 hover:bg-blue-500 text-white p-2 rounded transition duration-200 ${
               isLoading ? "opacity-50 cursor-not-allowed" : ""
             }`}

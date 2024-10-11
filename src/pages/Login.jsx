@@ -1,29 +1,34 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useAuth } from "../context/AuthContext"; // Assuming you're using an Auth context
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
-  const { login } = useAuth(); // Using AuthContext to manage the authenticated user
-  const [email, setEmail] = useState("");
+  const { login } = useAuth();
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:8080/api/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/login",
+        {
+          username,
+          password,
+        }
+      );
 
-      // Assuming the response contains user data with a role
       const userData = response.data;
 
       if (userData) {
-        login(userData); // Set the user data in the context
+        localStorage.setItem("token", userData.token);
+        console.log("Token stored:", userData.token);
+        login(userData);
 
-        // Redirect based on the user's role
         if (userData.role === "ADMIN") {
           window.location.href = "/admin-dashboard";
         } else {
@@ -31,7 +36,15 @@ const Login = () => {
         }
       }
     } catch (error) {
-      setErrorMessage("Invalid email or password.");
+      if (error.response && error.response.data) {
+        setErrorMessage(
+          error.response.data.message || "Invalid username or password."
+        );
+      } else {
+        setErrorMessage("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -46,14 +59,14 @@ const Login = () => {
         )}
         <form onSubmit={handleLogin}>
           <div className="mb-4">
-            <label className="block text-gray-300 mb-1" htmlFor="email">
-              Email
+            <label className="block text-gray-300 mb-1" htmlFor="username">
+              Username
             </label>
             <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
               className="mt-1 p-2 w-full bg-gray-700 text-white rounded focus:outline-none focus:ring focus:ring-blue-500"
             />
@@ -73,9 +86,12 @@ const Login = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white p-2 rounded transition duration-200"
+            className={`w-full ${
+              loading ? "bg-gray-600" : "bg-blue-600 hover:bg-blue-500"
+            } text-white p-2 rounded transition duration-200`}
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
         <p className="text-center text-gray-400 mt-4">
