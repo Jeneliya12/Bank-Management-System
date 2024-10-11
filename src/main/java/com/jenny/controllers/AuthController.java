@@ -1,88 +1,77 @@
 package com.jenny.controllers;
 
+import com.jenny.entity.Role;
 import com.jenny.entity.User;
+import com.jenny.repository.RoleRepository;
 import com.jenny.repository.UserRepository;
+import com.jenny.dto.AuthResponseDTO;
+import com.jenny.dto.LoginDto;
+import com.jenny.dto.RegisterDto;
+import com.jenny.security.JWTGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
 public class AuthController {
-
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JWTGenerator jwtGenerator;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@RequestBody User user) {
-        if (user.getEmail() == null || user.getPassword() == null) {
-            return createErrorResponse(HttpStatus.BAD_REQUEST, "Email and password are required.");
-        }
-
-        if (userRepository.existsByEmail(user.getEmail())) {
-            return createErrorResponse(HttpStatus.CONFLICT, "User already exists.");
-        }
-
-        String hashedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(hashedPassword);
-
-        if (user.getRole() == null || user.getRole().isEmpty()) {
-            user.setRole("USER");
-        }
-
-        User savedUser = userRepository.save(user);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", savedUser.getId());
-        response.put("email", savedUser.getEmail());
-        response.put("role", savedUser.getRole());
-        response.put("message", "User registered successfully.");
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository,
+                          PasswordEncoder passwordEncoder, JWTGenerator jwtGenerator) {
+        this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtGenerator = jwtGenerator;
     }
 
+    @PostMapping("login")
+    public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginDto loginDto) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginDto.getUsername(),
+                        loginDto.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String token = jwtGenerator.generateToken(authentication);
+        return new ResponseEntity<>(new AuthResponseDTO(token), HttpStatus.OK);
+    }
 
-    // Login endpoint
-    @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
-        Optional<User> existingUserOpt = userRepository.findByEmail(user.getEmail());
-
-        if (existingUserOpt.isEmpty() || !passwordEncoder.matches(user.getPassword(), existingUserOpt.get().getPassword())) {
-            return createErrorResponse(HttpStatus.UNAUTHORIZED, "Invalid email or password.");
+    @PostMapping("register")
+    public ResponseEntity<String> register(@RequestBody RegisterDto registerDto) {
+        if (userRepository.existsByUsername(registerDto.getUsername())) {
+            return new ResponseEntity<>("Username is taken!", HttpStatus.BAD_REQUEST);
         }
 
-        User existingUser = existingUserOpt.get();
+        User user = new User();
+        user.setUsername(registerDto.getUsername());
+        user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Login Successful");
-        response.put("role", existingUser.getRole());
-
-        return ResponseEntity.ok(response);
-    }
-
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<Map<String, Object>> handleException(Exception e) {
-        logger.error("An error occurred: ", e);
-        return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred: " + e.getMessage());
-    }
-
-    private ResponseEntity<Map<String, Object>> createErrorResponse(HttpStatus status, String message) {
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("error", message);
-        return ResponseEntity.status(status).body(errorResponse);
+        Optional<Role> rolesOpt = roleRepository.findByName("USER");
+        if (rolesOpt.isPresent()) {
+            Role roles = rolesOpt.get();
+            user.setRoles(Collections.singletonList(roles));
+            userRepository.save(user);
+            return new ResponseEntity<>("User registered successfully!", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Role not found", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

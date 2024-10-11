@@ -4,7 +4,9 @@ import com.jenny.dto.LoanResponseDTO;
 import com.jenny.dto.LoanRequestDTO; // New DTO for loan creation
 import com.jenny.dto.StatusUpdateRequest;
 import com.jenny.entity.Loan;
+import com.jenny.entity.User; // Import User entity
 import com.jenny.service.LoanService;
+import com.jenny.service.UserService; // Import UserService
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,40 +24,12 @@ public class LoanController {
     @Autowired
     private LoanService loanService;
 
+    @Autowired
+    private UserService userService;
+
     // Create a new loan
-    @PostMapping("/create")
-    public ResponseEntity<LoanResponseDTO> createLoan(@Valid @RequestBody LoanRequestDTO loanRequest) {
-        // Validate the loan request fields
-        if (loanRequest.getAmount() == null || loanRequest.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            return ResponseEntity.badRequest().body(null); // Handle invalid amount
-        }
-        if (loanRequest.getTerm() == null || loanRequest.getTerm() <= 0) {
-            return ResponseEntity.badRequest().body(null); // Handle invalid term
-        }
-        if (loanRequest.getAnnualInterestRate() == null || loanRequest.getAnnualInterestRate().compareTo(BigDecimal.ZERO) < 0) {
-            return ResponseEntity.badRequest().body(null); // Handle invalid interest rate
-        }
-
-        // Create a new Loan object
-        Loan loan = new Loan();
-        loan.setAmount(loanRequest.getAmount());
-        loan.setTerm(loanRequest.getTerm());
-        loan.setPurpose(loanRequest.getPurpose());
-        loan.setLoanType(loanRequest.getLoanType());
-        loan.setAnnualInterestRate(loanRequest.getAnnualInterestRate());
-        loan.setApplicationDate(new Date());
-        loan.setStatus("PENDING");
-
-        // Calculate the monthly payment
-        BigDecimal monthlyPayment = loanService.calculateMonthlyPayment(
-                loanRequest.getAmount(),
-                loanRequest.getAnnualInterestRate(),
-                loanRequest.getTerm()
-        );
-
+    public ResponseEntity<LoanResponseDTO> createLoan(@Valid @RequestBody Loan loan) {
         LoanResponseDTO createdLoan = loanService.saveLoan(loan);
-        createdLoan.setMonthlyPayment(monthlyPayment);
-
         return ResponseEntity.ok(createdLoan);
     }
 
@@ -87,5 +61,4 @@ public class LoanController {
         LoanResponseDTO updatedLoan = loanService.updateLoanStatus(id, statusUpdateRequest.getStatus());
         return ResponseEntity.ok(updatedLoan);
     }
-
 }

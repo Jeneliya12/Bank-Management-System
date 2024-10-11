@@ -1,53 +1,77 @@
-package com.jenny.security; // Change this to your actual package
+package com.jenny.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import static org.springframework.security.config.Customizer.withDefaults;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
-                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for testing
-                .authorizeHttpRequests(authorize -> authorize
-                      .requestMatchers("/api/register").permitAll() // Allow registration endpoint
-                     .requestMatchers("/api/login").permitAll() // Allow login endpoint
-                        .requestMatchers("/api/loans/**").permitAll() // Allow all loan-related requests
-                        .anyRequest().permitAll() // Allow all other requests without authentication
-                )
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(withDefaults());
 
-        return http.build();
+    private final CustomUserDetailsService userDetailsService;
+    private final JwtAuthEntryPoint jwtAuthEntryPoint;
+
+    public SecurityConfig(CustomUserDetailsService userDetailsService, JwtAuthEntryPoint jwtAuthEntryPoint) {
+        this.userDetailsService = userDetailsService;
+        this.jwtAuthEntryPoint = jwtAuthEntryPoint;
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowCredentials(true);
-        configuration.addAllowedOriginPattern("*"); // Allow all origins for debugging purposes
-        configuration.addAllowedHeader("*");
-        configuration.addAllowedMethod("*"); // Allow all HTTP methods
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(SecurityConfig::disableCsrf) // Disable CSRF protection using method reference
+                .exceptionHandling(customizer -> customizer
+                        .authenticationEntryPoint(jwtAuthEntryPoint)
+                )
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers("/api/auth/**").permitAll() // Permit all requests under /api/auth/**
+                        .requestMatchers("/api/loans/all", "/api/loans/{id}").permitAll() // Allow public access to these loan APIs
+                        .requestMatchers("/api/loans/**").authenticated()
+                        .anyRequest().authenticated() // Authenticate all other requests
+                )
+                .httpBasic(Customizer.withDefaults()) // Configure HTTP Basic authentication
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless session management
+                );
+        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
+
+    private static void disableCsrf(org.springframework.security.config.annotation.web.configurers.CsrfConfigurer<HttpSecurity> csrfConfigurer) {
+        csrfConfigurer.disable();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder()); // Use the defined PasswordEncoder
+        return provider;
+    }
+
+    @Bean
+    public JWTAuthenticationFilter jwtAuthenticationFilter() {
+        return new JWTAuthenticationFilter();
     }
 }

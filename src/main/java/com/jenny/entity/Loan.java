@@ -18,10 +18,10 @@ public class Loan {
     private Long id;
 
     @Column(nullable = false)
-    private BigDecimal amount; // Changed to BigDecimal for monetary value
+    private BigDecimal amount;
 
     @Column(nullable = false)
-    private Integer term; // Changed to Integer for term in months
+    private Integer term;
 
     @Column(nullable = false)
     private String purpose;
@@ -31,18 +31,16 @@ public class Loan {
 
     @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    private Date applicationDate; // Will receive from the customer
+    private Date applicationDate = new Date();
 
     @Column(nullable = false)
     private String status = "PENDING";
 
     @Column(nullable = false)
-    private BigDecimal annualInterestRate; // New field for the annual interest rate
+    private BigDecimal annualInterestRate;
 
-    // Optional: Store monthly payment in the database if needed
-    private BigDecimal monthlyPayment; // Optional, only if you want to persist this value
+    private BigDecimal monthlyPayment;
 
-    // Many loans can belong to one user
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

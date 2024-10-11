@@ -11,4 +11,5 @@ public class LoanRequestDTO {
     private String purpose;
     private String loanType;
     private BigDecimal annualInterestRate;
+    private Long userId; // Added field for user ID
 }

@@ -32,7 +32,7 @@ public class LoanService {
 
         LoanResponseDTO.UserDTO userDTO = new LoanResponseDTO.UserDTO();
         userDTO.setId(loan.getUser().getId());
-        userDTO.setEmail(loan.getUser().getEmail()); // Only include email and ID
+        userDTO.setEmail(loan.getUser().getUsername()); // Only include email and ID
         loanDTO.setUser(userDTO);
 
         return loanDTO;
